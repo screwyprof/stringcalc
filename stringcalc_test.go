@@ -62,6 +62,19 @@ func TestStringCalc_Add(t *testing.T) {
 		// assert
 		Equals(t, want, got)
 	})
+
+	t.Run("GivenNewLinesBetweenNumbersTheSumReturned", func(t *testing.T) {
+		// arrange
+		want := 6
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		got := calc.Add("1\n2,3")
+
+		// assert
+		Equals(t, want, got)
+	})
 }
 
 // Assert fails the test if the condition is false.

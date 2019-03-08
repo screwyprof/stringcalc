@@ -9,8 +9,9 @@ type StringCalc struct {
 }
 
 func (sc StringCalc) Add(nums string) int {
-	numbers := strings.Split(nums, ",")
-	if len (numbers) < 1 {
+	numbers := sc.parseNumbers(nums)
+
+	if len(numbers) < 1 {
 		return 0
 	}
 
@@ -26,4 +27,16 @@ func (sc StringCalc) Add(nums string) int {
 	}
 
 	return sum
+}
+
+func (sc StringCalc) parseNumbers(nums string) []string {
+	var numbers []string
+
+	lines := strings.Split(nums, "\n")
+	for _, line := range lines {
+		figs := strings.Split(line, "")
+		numbers = append(numbers, figs...)
+	}
+
+	return numbers
 }
