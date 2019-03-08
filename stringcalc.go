@@ -48,7 +48,7 @@ func (sc StringCalc) ripOffDelimiter(lines []string) ([]string, string) {
 		return lines, defaultDelimiter
 	}
 
-	delimiter := strings.TrimPrefix(lines[0], "//")
+	delimiter := strings.Trim(lines[0], "//[]")
 	lines = append(lines[:0], lines[1:]...)
 
 	return lines, delimiter

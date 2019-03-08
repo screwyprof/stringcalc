@@ -134,6 +134,20 @@ func TestStringCalc_Add(t *testing.T) {
 		Ok(t, err)
 		Equals(t, want, got)
 	})
+
+	t.Run("GivenADelimiterOfArbitraryLengthTheSumReturned", func(t *testing.T) {
+		// arrange
+		want := 6
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		got, err := calc.Add("//[***]\n1***2***3")
+
+		// assert
+		Ok(t, err)
+		Equals(t, want, got)
+	})
 }
 
 // Assert fails the test if the condition is false.
