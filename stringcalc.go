@@ -1,7 +1,9 @@
 package stringcalc
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -16,7 +18,7 @@ func (sc StringCalc) Add(nums string) (int, error) {
 
 	numbers, err := sc.strSliceToIntSlice(strNumbers)
 	if err != nil {
-		return 0, fmt.Errorf("invalid input given: " + nums)
+		return 0, errors.New("invalid input given: " + nums)
 	}
 
 	if negErr := sc.ensureNoNegativeNumbersGiven(numbers); negErr != nil {
@@ -31,27 +33,44 @@ func (sc StringCalc) parseInput(nums string) []string {
 		return nil
 	}
 
-	lines, delimiter := sc.ripOffDelimiter(strings.Split(nums, "\n"))
+	lines := strings.Split(nums, "\n")
+
+	delimiters := []string{","}
+	if strings.HasPrefix(lines[0], "//") {
+		delimiters = sc.parseDelimiters(lines[0])
+		lines = append(lines[:0], lines[1:]...)
+	}
 
 	var numbers []string
 	for _, line := range lines {
-		figs := strings.Split(line, delimiter)
-		numbers = append(numbers, figs...)
+		numbers = append(numbers, sc.applyDelimiters(line, delimiters)...)
 	}
 
 	return numbers
 }
 
-func (sc StringCalc) ripOffDelimiter(lines []string) ([]string, string) {
-	const defaultDelimiter = ","
-	if !strings.HasPrefix(lines[0], "//") {
-		return lines, defaultDelimiter
+func (sc StringCalc) applyDelimiters(line string, delimiters []string) []string {
+	for _, delimiter := range delimiters {
+		line = strings.ReplaceAll(line, delimiter, ",")
+	}
+	return strings.Split(line, ",")
+}
+
+func (sc StringCalc) parseDelimiters(delimiterStr string) []string {
+	// one simple delimiter
+	if !strings.HasPrefix(delimiterStr, "//[") {
+		delimiterStr = strings.TrimPrefix(delimiterStr, "//")
+		return []string{delimiterStr}
 	}
 
-	delimiter := strings.Trim(lines[0], "//[]")
-	lines = append(lines[:0], lines[1:]...)
+	var re = regexp.MustCompile(`\[(.+?)]`)
 
-	return lines, delimiter
+	var delimiters []string
+	for _, match := range re.FindAllStringSubmatch(delimiterStr, -1) {
+		delimiters = append(delimiters, match[1])
+	}
+
+	return delimiters
 }
 
 func (sc StringCalc) strSliceToIntSlice(strNums []string) ([]int, error) {
@@ -59,7 +78,7 @@ func (sc StringCalc) strSliceToIntSlice(strNums []string) ([]int, error) {
 	for _, strNum := range strNums {
 		num, err := strconv.Atoi(strNum)
 		if err != nil {
-			return nil, fmt.Errorf("invalid number given: %s", strNum)
+			return nil, errors.New("invalid number given: " + strNum)
 		}
 		numbers = append(numbers, num)
 	}
@@ -75,7 +94,7 @@ func (sc StringCalc) ensureNoNegativeNumbersGiven(nums []int) error {
 	}
 
 	if len(negativeNumbers) > 0 {
-		return fmt.Errorf("negative numbers not allowed: " + sc.numbersToString(negativeNumbers))
+		return errors.New("negative numbers not allowed: " + sc.numbersToString(negativeNumbers))
 	}
 
 	return nil
