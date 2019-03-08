@@ -1,6 +1,7 @@
 package stringcalc
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -8,35 +9,56 @@ import (
 type StringCalc struct {
 }
 
-func (sc StringCalc) Add(nums string) int {
-	numbers := sc.parseNumbers(nums)
+func (sc StringCalc) Add(nums string) (int, error) {
+	if nums == "" {
+		return 0, nil
+	}
 
+	numbers := sc.parseInput(nums)
 	if len(numbers) < 1 {
-		return 0
+		return 0, nil
 	}
 
 	if len(numbers) == 1 {
-		num, _ := strconv.Atoi(numbers[0])
-		return num
+		num, err := strconv.Atoi(numbers[0])
+		if err != nil {
+			return 0, fmt.Errorf("invalid input given: %s", nums)
+		}
+		return num, nil
 	}
 
 	var sum int
 	for _, number := range numbers {
-		num, _ := strconv.Atoi(number)
+		num, err := strconv.Atoi(number)
+		if err != nil {
+			return 0, fmt.Errorf("invalid input given: %s", nums)
+		}
 		sum += num
 	}
 
-	return sum
+	return sum, nil
 }
 
-func (sc StringCalc) parseNumbers(nums string) []string {
-	var numbers []string
+func (sc StringCalc) parseInput(nums string) []string {
+	lines, delimiter := sc.ripOffDelimiter(strings.Split(nums, "\n"))
 
-	lines := strings.Split(nums, "\n")
+	var numbers []string
 	for _, line := range lines {
-		figs := strings.Split(line, "")
+		figs := strings.Split(line, delimiter)
 		numbers = append(numbers, figs...)
 	}
 
 	return numbers
+}
+
+func (sc StringCalc) ripOffDelimiter(lines []string) ([]string, string) {
+	const defaultDelimiter = ","
+	if !strings.HasPrefix(lines[0], "//") {
+		return lines, defaultDelimiter
+	}
+
+	delimiter := strings.TrimPrefix(lines[0], "//")
+	lines = append(lines[:0], lines[1:]...)
+
+	return lines, delimiter
 }

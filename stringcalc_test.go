@@ -18,9 +18,10 @@ func TestStringCalc_Add(t *testing.T) {
 		calc := stringcalc.StringCalc{}
 
 		// act
-		got := calc.Add("")
+		got, err := calc.Add("")
 
 		// assert
+		Ok(t, err)
 		Equals(t, want, got)
 	})
 
@@ -31,9 +32,10 @@ func TestStringCalc_Add(t *testing.T) {
 		calc := stringcalc.StringCalc{}
 
 		// act
-		got := calc.Add("5")
+		got, err := calc.Add("5")
 
 		// assert
+		Ok(t, err)
 		Equals(t, want, got)
 	})
 
@@ -44,9 +46,10 @@ func TestStringCalc_Add(t *testing.T) {
 		calc := stringcalc.StringCalc{}
 
 		// act
-		got := calc.Add("5,2")
+		got, err := calc.Add("5,2")
 
 		// assert
+		Ok(t, err)
 		Equals(t, want, got)
 	})
 
@@ -57,9 +60,10 @@ func TestStringCalc_Add(t *testing.T) {
 		calc := stringcalc.StringCalc{}
 
 		// act
-		got := calc.Add("3,2,1,0,1")
+		got, err := calc.Add("3,2,1,0,1")
 
 		// assert
+		Ok(t, err)
 		Equals(t, want, got)
 	})
 
@@ -70,9 +74,37 @@ func TestStringCalc_Add(t *testing.T) {
 		calc := stringcalc.StringCalc{}
 
 		// act
-		got := calc.Add("1\n2,3")
+		got, err := calc.Add("1\n2,3")
 
 		// assert
+		Ok(t, err)
+		Equals(t, want, got)
+	})
+
+	t.Run("GivenInvalidInputAnErrorReturned", func(t *testing.T) {
+		// arrange
+		want := fmt.Errorf("invalid input given: lalaef,eff")
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		_, err := calc.Add("lalaef,eff")
+
+		// assert
+		Equals(t, want, err)
+	})
+
+	t.Run("GivenACustomDelimiterTheSumReturned", func(t *testing.T) {
+		// arrange
+		want := 3
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		got, err := calc.Add("//;\n1;2")
+
+		// assert
+		Ok(t, err)
 		Equals(t, want, got)
 	})
 }
