@@ -36,6 +36,32 @@ func TestStringCalc_Add(t *testing.T) {
 		// assert
 		Equals(t, want, got)
 	})
+
+	t.Run("GivenTwoNumbersTheSumReturned", func(t *testing.T) {
+		// arrange
+		want := 7
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		got := calc.Add("5,2")
+
+		// assert
+		Equals(t, want, got)
+	})
+
+	t.Run("GivenArbitraryNumbersTheSumReturned", func(t *testing.T) {
+		// arrange
+		want := 7
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		got := calc.Add("3,2,1,0,1")
+
+		// assert
+		Equals(t, want, got)
+	})
 }
 
 // Assert fails the test if the condition is false.
