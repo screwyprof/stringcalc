@@ -6,40 +6,31 @@ import (
 	"strings"
 )
 
-type StringCalc struct {
-}
+type StringCalc struct{}
 
 func (sc StringCalc) Add(nums string) (int, error) {
-	if nums == "" {
+	strNumbers := sc.parseInput(nums)
+	if len(strNumbers) < 1 {
 		return 0, nil
 	}
 
-	numbers := sc.parseInput(nums)
-	if len(numbers) < 1 {
-		return 0, nil
+	numbers, err := sc.strSliceToIntSlice(strNumbers)
+	if err != nil {
+		return 0, fmt.Errorf("invalid input given: " + nums)
 	}
 
-	if len(numbers) == 1 {
-		num, err := strconv.Atoi(numbers[0])
-		if err != nil {
-			return 0, fmt.Errorf("invalid input given: %s", nums)
-		}
-		return num, nil
+	if negErr := sc.ensureNoNegativeNumbersGiven(numbers); negErr != nil {
+		return 0, negErr
 	}
 
-	var sum int
-	for _, number := range numbers {
-		num, err := strconv.Atoi(number)
-		if err != nil {
-			return 0, fmt.Errorf("invalid input given: %s", nums)
-		}
-		sum += num
-	}
-
-	return sum, nil
+	return sc.sumNumbers(numbers), nil
 }
 
 func (sc StringCalc) parseInput(nums string) []string {
+	if nums == "" {
+		return nil
+	}
+
 	lines, delimiter := sc.ripOffDelimiter(strings.Split(nums, "\n"))
 
 	var numbers []string
@@ -61,4 +52,44 @@ func (sc StringCalc) ripOffDelimiter(lines []string) ([]string, string) {
 	lines = append(lines[:0], lines[1:]...)
 
 	return lines, delimiter
+}
+
+func (sc StringCalc) strSliceToIntSlice(strNums []string) ([]int, error) {
+	var numbers []int
+	for _, strNum := range strNums {
+		num, err := strconv.Atoi(strNum)
+		if err != nil {
+			return nil, fmt.Errorf("invalid number given: %s", strNum)
+		}
+		numbers = append(numbers, num)
+	}
+	return numbers, nil
+}
+
+func (sc StringCalc) ensureNoNegativeNumbersGiven(nums []int) error {
+	var negativeNumbers []int
+	for _, num := range nums {
+		if num < 0 {
+			negativeNumbers = append(negativeNumbers, num)
+		}
+	}
+
+	if len(negativeNumbers) > 0 {
+		return fmt.Errorf("negative numbers not allowed: " + sc.numbersToString(negativeNumbers))
+	}
+
+	return nil
+}
+
+func (sc StringCalc) numbersToString(numbers []int) string {
+	return strings.Trim(strings.Replace(fmt.Sprint(numbers), " ", ",", -1), "[]")
+}
+
+func (sc StringCalc) sumNumbers(nums []int) int {
+	var sum int
+	for _, num := range nums {
+		sum += num
+	}
+
+	return sum
 }

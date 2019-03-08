@@ -107,6 +107,19 @@ func TestStringCalc_Add(t *testing.T) {
 		Ok(t, err)
 		Equals(t, want, got)
 	})
+
+	t.Run("GivenNegativeNumbersAnErrorReturned", func(t *testing.T) {
+		// arrange
+		want := fmt.Errorf("negative numbers not allowed: -2,-4")
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		_, err := calc.Add("1,-2,-4")
+
+		// assert
+		Equals(t, want, err)
+	})
 }
 
 // Assert fails the test if the condition is false.

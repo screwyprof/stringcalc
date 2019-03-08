@@ -10,7 +10,7 @@ import (
 func main() {
 	calc := stringcalc.StringCalc{}
 
-	sum, err := calc.Add("1\n2,3")
+	sum, err := calc.Add("//#\n1#2")
 	failOnError(err)
 
 	fmt.Println(sum)
