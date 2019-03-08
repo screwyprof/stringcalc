@@ -120,6 +120,20 @@ func TestStringCalc_Add(t *testing.T) {
 		// assert
 		Equals(t, want, err)
 	})
+
+	t.Run("GivenANumberGreaterThan1000ItIsNotSummed", func(t *testing.T) {
+		// arrange
+		want := 2
+
+		calc := stringcalc.StringCalc{}
+
+		// act
+		got, err := calc.Add("2,1001")
+
+		// assert
+		Ok(t, err)
+		Equals(t, want, got)
+	})
 }
 
 // Assert fails the test if the condition is false.

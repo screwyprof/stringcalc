@@ -88,6 +88,9 @@ func (sc StringCalc) numbersToString(numbers []int) string {
 func (sc StringCalc) sumNumbers(nums []int) int {
 	var sum int
 	for _, num := range nums {
+		if num > 1000 {
+			continue
+		}
 		sum += num
 	}
 
