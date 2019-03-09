@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+const defaultDelimiter = ","
+
+var delimiterRegExp = regexp.MustCompile(`\[(.+?)]`)
+
 type StringCalc struct{}
 
 func (sc StringCalc) Add(nums string) (int, error) {
@@ -28,49 +32,60 @@ func (sc StringCalc) Add(nums string) (int, error) {
 	return sc.sumNumbers(numbers), nil
 }
 
-func (sc StringCalc) parseInput(nums string) []string {
-	if nums == "" {
+func (sc StringCalc) parseInput(input string) []string {
+	if input == "" {
 		return nil
 	}
 
-	lines := strings.Split(nums, "\n")
+	delimiters := sc.parseDelimiters(input)
+	input = sc.cutOutDelimitersIfPresent(input)
+	input = strings.ReplaceAll(input, "\n", defaultDelimiter)
 
-	delimiters := []string{","}
-	if strings.HasPrefix(lines[0], "//") {
-		delimiters = sc.parseDelimiters(lines[0])
-		lines = append(lines[:0], lines[1:]...)
+	return sc.applyDelimiters(input, delimiters)
+}
+
+func (sc StringCalc) parseDelimiters(input string) []string {
+	switch {
+	case strings.HasPrefix(input, "//["):
+		return sc.parseComplexDelimiters(input)
+	case strings.HasPrefix(input, "//"):
+		return sc.parseSimpleDelimiters(input)
+	default:
+		return nil
+	}
+}
+
+func (sc StringCalc) parseSimpleDelimiters(input string) []string {
+	delimiter := strings.TrimPrefix(input, "//")
+	idx := strings.Index(delimiter, "\n")
+	delimiter = delimiter[:idx]
+	return []string{delimiter}
+}
+
+func (sc StringCalc) parseComplexDelimiters(input string) []string {
+	var delimiters []string
+	for _, match := range delimiterRegExp.FindAllStringSubmatch(input, -1) {
+		delimiters = append(delimiters, match[1])
+	}
+	return delimiters
+}
+
+func (sc StringCalc) cutOutDelimitersIfPresent(input string) string {
+	if !strings.HasPrefix(input, "//") {
+		return input
 	}
 
-	var numbers []string
-	for _, line := range lines {
-		numbers = append(numbers, sc.applyDelimiters(line, delimiters)...)
-	}
+	idx := strings.Index(input, "\n")
+	input = input[idx+1:]
 
-	return numbers
+	return input
 }
 
 func (sc StringCalc) applyDelimiters(line string, delimiters []string) []string {
 	for _, delimiter := range delimiters {
-		line = strings.ReplaceAll(line, delimiter, ",")
+		line = strings.ReplaceAll(line, delimiter, defaultDelimiter)
 	}
-	return strings.Split(line, ",")
-}
-
-func (sc StringCalc) parseDelimiters(delimiterStr string) []string {
-	// one simple delimiter
-	if !strings.HasPrefix(delimiterStr, "//[") {
-		delimiterStr = strings.TrimPrefix(delimiterStr, "//")
-		return []string{delimiterStr}
-	}
-
-	var re = regexp.MustCompile(`\[(.+?)]`)
-
-	var delimiters []string
-	for _, match := range re.FindAllStringSubmatch(delimiterStr, -1) {
-		delimiters = append(delimiters, match[1])
-	}
-
-	return delimiters
+	return strings.Split(line, defaultDelimiter)
 }
 
 func (sc StringCalc) strSliceToIntSlice(strNums []string) ([]int, error) {
