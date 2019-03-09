@@ -10,162 +10,62 @@ import (
 	"github.com/screwyprof/stringcalc"
 )
 
+var (
+	errInvalidInput        = fmt.Errorf("invalid input given: lalaef,eff")
+	errNegativesNotAllowed = fmt.Errorf("negative numbers not allowed: -2,-4")
+)
+
 func TestStringCalc_Add(t *testing.T) {
-	t.Run("GivenEmptyInputZeroSumReturned", func(t *testing.T) {
-		// arrange
-		want := 0
+	checks := func(cs ...check) []check { return cs }
 
-		calc := stringcalc.StringCalc{}
+	cases := []struct {
+		name   string
+		input  string
+		checks []check
+	}{
+		{"GivenEmptyInputZeroSumReturned", "", checks(validCase(0))},
+		{"GivenOneNumberTheSameNumberReturned", "5", checks(validCase(5))},
+		{"GivenTwoNumbersTheSumReturned", "5,2", checks(validCase(7))},
+		{"GivenArbitraryNumbersTheSumReturned", "3,2,1,0,1", checks(validCase(7))},
+		{"GivenNewLinesBetweenNumbersTheSumReturned", "1\n2,3", checks(validCase(6))},
+		{"GivenInvalidInputAnErrorReturned", "lalaef,eff", checks(hasError(errInvalidInput))},
+		{"GivenACustomDelimiterTheSumReturned", "//;\n1;2", checks(validCase(3))},
+		{"GivenNegativeNumbersAnErrorReturned", "1,-2,-4", checks(hasError(errNegativesNotAllowed))},
+		{"GivenANumberGreaterThan1000ItIsNotSummed", "2,1001", checks(validCase(2))},
+		{"GivenALengthyDelimiterTheSumReturned", "//[***]\n1***2***3", checks(validCase(6))},
+		{"GivenAFewDelimitersTheSumReturned", "//[*][%]\n1*2%3", checks(validCase(6))},
+	}
 
-		// act
-		got, err := calc.Add("")
+	calc := stringcalc.StringCalc{}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := calc.Add(tc.input)
+			for _, ch := range tc.checks {
+				ch(t, got, err)
+			}
+		})
+	}
+}
 
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
+type check func(t *testing.T, got int, err error)
 
-	t.Run("GivenOneNumberTheSameNumberReturned", func(t *testing.T) {
-		// arrange
-		want := 5
+func hasError(want error) check {
+	return func(t *testing.T, got int, err error) {
+		t.Helper()
+		equals(t, want, err)
+	}
+}
 
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("5")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
-
-	t.Run("GivenTwoNumbersTheSumReturned", func(t *testing.T) {
-		// arrange
-		want := 7
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("5,2")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
-
-	t.Run("GivenArbitraryNumbersTheSumReturned", func(t *testing.T) {
-		// arrange
-		want := 7
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("3,2,1,0,1")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
-
-	t.Run("GivenNewLinesBetweenNumbersTheSumReturned", func(t *testing.T) {
-		// arrange
-		want := 6
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("1\n2,3")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
-
-	t.Run("GivenInvalidInputAnErrorReturned", func(t *testing.T) {
-		// arrange
-		want := fmt.Errorf("invalid input given: lalaef,eff")
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		_, err := calc.Add("lalaef,eff")
-
-		// assert
-		Equals(t, want, err)
-	})
-
-	t.Run("GivenACustomDelimiterTheSumReturned", func(t *testing.T) {
-		// arrange
-		want := 3
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("//;\n1;2")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
-
-	t.Run("GivenNegativeNumbersAnErrorReturned", func(t *testing.T) {
-		// arrange
-		want := fmt.Errorf("negative numbers not allowed: -2,-4")
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		_, err := calc.Add("1,-2,-4")
-
-		// assert
-		Equals(t, want, err)
-	})
-
-	t.Run("GivenANumberGreaterThan1000ItIsNotSummed", func(t *testing.T) {
-		// arrange
-		want := 2
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("2,1001")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
-
-	t.Run("GivenADelimiterOfArbitraryLengthTheSumReturned", func(t *testing.T) {
-		// arrange
-		want := 6
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("//[***]\n1***2***3")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
-
-	t.Run("GivenAFewDelimitersTheSumReturned", func(t *testing.T) {
-		// arrange
-		want := 6
-
-		calc := stringcalc.StringCalc{}
-
-		// act
-		got, err := calc.Add("//[*][%]\n1*2%3")
-
-		// assert
-		Ok(t, err)
-		Equals(t, want, got)
-	})
+func validCase(want int) check {
+	return func(t *testing.T, got int, err error) {
+		t.Helper()
+		ok(t, err)
+		equals(t, want, got)
+	}
 }
 
 // Assert fails the test if the condition is false.
-func Assert(tb testing.TB, condition bool, msg string, v ...interface{}) {
+func assert(tb testing.TB, condition bool, msg string, v ...interface{}) {
 	tb.Helper()
 	if !condition {
 		_, file, line, _ := runtime.Caller(1)
@@ -174,8 +74,8 @@ func Assert(tb testing.TB, condition bool, msg string, v ...interface{}) {
 	}
 }
 
-// Ok fails the test if an err is not nil.
-func Ok(tb testing.TB, err error) {
+// ok fails the test if an err is not nil.
+func ok(tb testing.TB, err error) {
 	tb.Helper()
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
@@ -184,8 +84,8 @@ func Ok(tb testing.TB, err error) {
 	}
 }
 
-// Equals fails the test if exp is not equal to act.
-func Equals(tb testing.TB, exp, act interface{}) {
+// equals fails the test if exp is not equal to act.
+func equals(tb testing.TB, exp, act interface{}) {
 	tb.Helper()
 	if !reflect.DeepEqual(exp, act) {
 		_, file, line, _ := runtime.Caller(1)
