@@ -2,9 +2,6 @@ package stringcalc_test
 
 import (
 	"fmt"
-	"path/filepath"
-	"reflect"
-	"runtime"
 	"testing"
 
 	"github.com/screwyprof/stringcalc"
@@ -23,17 +20,17 @@ func TestStringCalc_Add(t *testing.T) {
 		input  string
 		checks []check
 	}{
-		{"GivenEmptyInputZeroSumReturned", "", checks(validCase(0))},
-		{"GivenOneNumberTheSameNumberReturned", "5", checks(validCase(5))},
-		{"GivenTwoNumbersTheSumReturned", "5,2", checks(validCase(7))},
-		{"GivenArbitraryNumbersTheSumReturned", "3,2,1,0,1", checks(validCase(7))},
-		{"GivenNewLinesBetweenNumbersTheSumReturned", "1\n2,3", checks(validCase(6))},
-		{"GivenInvalidInputAnErrorReturned", "lalaef,eff", checks(hasError(errInvalidInput))},
-		{"GivenACustomDelimiterTheSumReturned", "//;\n1;2", checks(validCase(3))},
-		{"GivenNegativeNumbersAnErrorReturned", "1,-2,-4", checks(hasError(errNegativesNotAllowed))},
-		{"GivenANumberGreaterThan1000ItIsNotSummed", "2,1001", checks(validCase(2))},
-		{"GivenALengthyDelimiterTheSumReturned", "//[***]\n1***2***3", checks(validCase(6))},
-		{"GivenAFewDelimitersTheSumReturned", "//[*][%]\n1*2%3", checks(validCase(6))},
+		{"GivenEmptyInputZeroSumReturned", "", checks(expect(0))},
+		{"GivenOneNumberTheSameNumberReturned", "5", checks(expect(5))},
+		{"GivenTwoNumbersTheSumReturned", "5,2", checks(expect(7))},
+		{"GivenArbitraryNumbersTheSumReturned", "3,2,1,0,1", checks(expect(7))},
+		{"GivenNewLinesBetweenNumbersTheSumReturned", "1\n2,3", checks(expect(6))},
+		{"GivenInvalidInputAnErrorReturned", "lalaef,eff", checks(expectError(errInvalidInput))},
+		{"GivenACustomDelimiterTheSumReturned", "//;\n1;2", checks(expect(3))},
+		{"GivenNegativeNumbersAnErrorReturned", "1,-2,-4", checks(expectError(errNegativesNotAllowed))},
+		{"GivenANumberGreaterThan1000ItIsNotSummed", "2,1001", checks(expect(2))},
+		{"GivenALengthyDelimiterTheSumReturned", "//[***]\n1***2***3", checks(expect(6))},
+		{"GivenAFewDelimitersTheSumReturned", "//[*][%]\n1*2%3", checks(expect(6))},
 	}
 
 	calc := stringcalc.StringCalc{}
@@ -49,47 +46,17 @@ func TestStringCalc_Add(t *testing.T) {
 
 type check func(t *testing.T, got int, err error)
 
-func hasError(want error) check {
+func expectError(want error) check {
 	return func(t *testing.T, got int, err error) {
 		t.Helper()
 		equals(t, want, err)
 	}
 }
 
-func validCase(want int) check {
+func expect(want int) check {
 	return func(t *testing.T, got int, err error) {
 		t.Helper()
 		ok(t, err)
 		equals(t, want, got)
-	}
-}
-
-// Assert fails the test if the condition is false.
-func assert(tb testing.TB, condition bool, msg string, v ...interface{}) {
-	tb.Helper()
-	if !condition {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d: "+msg+"\033[39m\n\n", append([]interface{}{filepath.Base(file), line}, v...)...)
-		tb.FailNow()
-	}
-}
-
-// ok fails the test if an err is not nil.
-func ok(tb testing.TB, err error) {
-	tb.Helper()
-	if err != nil {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d: unexpected error: %s\033[39m\n\n", filepath.Base(file), line, err.Error())
-		tb.FailNow()
-	}
-}
-
-// equals fails the test if exp is not equal to act.
-func equals(tb testing.TB, exp, act interface{}) {
-	tb.Helper()
-	if !reflect.DeepEqual(exp, act) {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\033[39m\n\n", filepath.Base(file), line, exp, act)
-		tb.FailNow()
 	}
 }
